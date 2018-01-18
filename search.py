@@ -91,82 +91,61 @@ def depthFirstSearch(problem):
   print "Is the start a goal?", problem.isGoal(problem.startingState())
   print "Start's successors:", problem.successorStates(problem.startingState())
 
-  initFrontier = util.Stack()
   explored = []
-  initState = problem.startingState()
-  initFrontier.push(initState)
-  explored.append(initState)
-  returnList = recDfs(problem, initFrontier, initState, explored)
+  fringe = util.Stack()
+  pathDict = dict()
+
+  fringe.push(problem.startingState())
+  returnList = []
+
+  while not fringe.isEmpty():
+    if problem.isGoal(parentState):
+      returnList = getSolutionDfs(pathDict, parent, problem.startingState())
+
+    parent = fringe.pop()
+
+    if len(parent) == 3:
+      parentState = parent[0]
+    else:
+      parentState = parent
+
+    # print 'fringe ', fringe.list
+    # print 'explored ', explored
+
+    
+
+    if parentState not in explored:
+      print 'parent state ', parentState
+      explored.append(parentState)
+
+      for child in problem.successorStates(parentState):
+
+        if child[0] not in explored:
+          fringe.push(child)
+          pathDict[child[0]] = parent
+
+  print 'path dict: ', pathDict
   print 'return list ', returnList
 
   #util.raiseNotDefined()
 
-  return returnList
+  return formatSolution(returnList)
 
-def recDfs(problem, frontier, state, explored):
-  # recursive part of the DFS algorithm
-  x = None
 
-  if problem.isGoal(state):
-    print 'stack at sol: ', frontier.list
-    return solution(frontier)
-  
-  
-  print 'state in rec is: ', state
-  successorList = problem.successorStates(state)
-
-  for child in successorList:
-    if child[0] not in explored:
-      frontier.push(child)
-      explored.append(child[0])
-      x = recDfs(problem, frontier, child[0], explored)
+def getSolutionDfs(pathDict, goal, startState):
+  sol = []
+  temp = goal
+  while temp is not None:
+    sol.insert(0,temp)
+    temp = pathDict[temp[0]] if pathDict[temp[0]] else None
+    if temp == startState:
+      break
     
-  if x is None:
-    print 'here'
-    n = frontier.pop()
-    print 'poppiing node: ', n[0]
-    return  
-  else:
-    return x 
-
-
-  # if len(successorList) == 0 or allSuccessorsExplored(successorList, explored):
-  #   print 'here'
-  #   n = frontier.pop()
-  #   print 'poppiing node: ', n[0]
-  #   return 
-
-
-# def recDfs(problem, frontier, state, explored):
-#   # recursive part of the DFS algorithm
-  
-  
-#   print 'state in rec is: ', state
-#   successorList = problem.successorStates(state)
-#   if len(successorList) == 0 or allSuccessorsExplored(successorList, explored):
-#     print 'here'
-#     n = frontier.pop()
-
-#   for child in successorList:
-#     if child[0] not in explored:
-#       frontier.push(child)
-#       explored.append(child[0])
-#       if problem.isGoal(child[0]):
-#         print 'stack at solution time is: ', frontier.list
-#         return solution(frontier) 
-#       recDfs(problem, frontier, child[0], explored)
+  return sol
 
 
 
-def allSuccessorsExplored(successors, explored):
-
-  for s in successors:
-    if s[0] not in explored:
-      return False
-
-  return True
-
-def solution(frontier):
+def formatSolution(frontier):
 
   from game import Directions
   s = Directions.SOUTH
@@ -175,7 +154,7 @@ def solution(frontier):
   n = Directions.NORTH
 
   sol = []
-  for item in frontier.list:
+  for item in frontier:
     if item[1] == 'South':
       sol.append(s)
     elif item[1] == 'North':
