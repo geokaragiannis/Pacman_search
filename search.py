@@ -91,8 +91,11 @@ def depthFirstSearch(problem):
   print "Is the start a goal?", problem.isGoal(problem.startingState())
   print "Start's successors:", problem.successorStates(problem.startingState())
 
+  # list that holds the states already visited
   explored = []
+  # LIFO stack
   fringe = util.Stack()
+  # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
   pathDict = dict()
 
   fringe.push(problem.startingState())
@@ -102,6 +105,8 @@ def depthFirstSearch(problem):
 
     parent = fringe.pop()
 
+    # if the parent is the init state, then parent = (x,y)
+    # and not ((x,y), Direction, cost). So only get the (x,y)
     if len(parent) == 3:
       parentState = parent[0]
     else:
@@ -110,27 +115,31 @@ def depthFirstSearch(problem):
     # print 'fringe ', fringe.list
     # print 'explored ', explored
 
-    if problem.isGoal(parentState):
-      returnList = getSolutionDfs(pathDict, parent, problem.startingState())
-
+    # add to explored if not already visited
     if parentState not in explored:
       print 'parent state ', parentState
       explored.append(parentState)
 
       for child in problem.successorStates(parentState):
-
         if child[0] not in explored:
           fringe.push(child)
+          # update the dict for a state that we visit for the 
+          # first time
           pathDict[child[0]] = parent
+          if problem.isGoal(child[0]):
+            return formatSolution(getSolutionDfs(pathDict, child, problem.startingState()))
+            break
+          
 
   print 'path dict: ', pathDict
   print 'return list ', returnList
 
   #util.raiseNotDefined()
+  # return failure if the stack is empty
+  return []
 
-  return formatSolution(returnList)
-
-
+# go through the Dictionary, starting from the goal state and ending 
+# in the first state. Returns a list
 def getSolutionDfs(pathDict, goal, startState):
   sol = []
   temp = goal
@@ -143,7 +152,7 @@ def getSolutionDfs(pathDict, goal, startState):
   return sol
 
 
-
+# format a list, so that it looks like [s,s,w,...]
 def formatSolution(frontier):
 
   from game import Directions
@@ -162,8 +171,6 @@ def formatSolution(frontier):
       sol.append(w)
     elif item[1] == 'East':
       sol.append(e)
-
-  #print 'lala ', sol
 
   return sol
 
