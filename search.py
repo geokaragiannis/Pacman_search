@@ -99,8 +99,6 @@ def depthFirstSearch(problem):
   returnList = []
 
   while not fringe.isEmpty():
-    if problem.isGoal(parentState):
-      returnList = getSolutionDfs(pathDict, parent, problem.startingState())
 
     parent = fringe.pop()
 
@@ -112,7 +110,8 @@ def depthFirstSearch(problem):
     # print 'fringe ', fringe.list
     # print 'explored ', explored
 
-    
+    if problem.isGoal(parentState):
+      returnList = getSolutionDfs(pathDict, parent, problem.startingState())
 
     if parentState not in explored:
       print 'parent state ', parentState
