@@ -151,7 +151,6 @@ def getSolutionDfs(pathDict, goal, startState):
     temp = pathDict[temp[0]] if pathDict[temp[0]] else None
     if temp == startState:
       break
-    
   return sol
 
 
@@ -232,7 +231,69 @@ def breadthFirstSearch(problem):
       
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
-  util.raiseNotDefined()
+  explored = set()
+  # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
+  pathDict = dict()
+
+  fringe = util.PriorityQueue()
+  fringe.push(problem.startingState(), 0)
+
+  while not fringe.isEmpty():
+    if fringe.isEmpty(): 
+      print 'failure'
+      return []
+
+    parent = fringe.pop()
+
+    # if the parent is the init state, then parent = (x,y)
+    # and not ((x,y), Direction, cost). So only get the (x,y)
+    if len(parent) == 3:
+      parentState = parent[0]
+    else:
+      parentState = parent
+
+    if problem.isGoal(parentState):
+      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+
+    # add to explored if not already visited
+    if parentState not in selectStates(explored):
+      explored.add(parent)
+
+      for child in problem.successorStates(parentState):
+        if child[0] not in selectStates(explored):
+          # update the dict for a state that we visit for the 
+          # first time
+          pathDict[child[0]] = parent
+          fringe.push(child, child[2])
+        else:
+          sameState = findChild(explored, child)
+          # print 'child: ', child
+          if sameState is None: continue
+
+          if sameState[2] < child[2]:
+            #pathDict[sameState[0]] = parent 
+            fringe.push(sameState, sameState[2])
+
+  # util.raiseNotDefined()
+
+# finds an element e in explored such as e[0] = childState[0], given that
+# this element exists
+def findChild(explored, childState):
+  for state in explored:
+    if state[0] == childState[0]:
+      return state
+  return None
+
+# takes a list/set with tuples as elements and returns
+# a set with the coordinates as elements
+def selectStates(explored):
+  sol = set()
+  for e in explored:
+    if len(e) == 3:
+      sol.add(e[0])
+    else:
+      sol.add(e)
+  return sol
 
 def nullHeuristic(state, problem=None):
   """
