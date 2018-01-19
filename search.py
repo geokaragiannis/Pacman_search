@@ -81,6 +81,7 @@ def depthFirstSearch(problem):
   print "Start's successors:", problem.successorStates(problem.startingState())
   """
 
+  #TODO if the init state is a solution, then return the empty list 
   from game import Directions
   s = Directions.SOUTH
   w = Directions.WEST
@@ -112,12 +113,15 @@ def depthFirstSearch(problem):
     else:
       parentState = parent
 
+    if problem.isGoal(parentState):
+      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+
     # print 'fringe ', fringe.list
     # print 'explored ', explored
 
     # add to explored if not already visited
     if parentState not in explored:
-      print 'parent state ', parentState
+      # print 'parent state ', parentState
       explored.append(parentState)
 
       for child in problem.successorStates(parentState):
@@ -126,9 +130,8 @@ def depthFirstSearch(problem):
           # update the dict for a state that we visit for the 
           # first time
           pathDict[child[0]] = parent
-          if problem.isGoal(child[0]):
-            return formatSolution(getSolutionDfs(pathDict, child, problem.startingState()))
-            break
+          
+            
           
 
   print 'path dict: ', pathDict
@@ -177,7 +180,55 @@ def formatSolution(frontier):
 
 def breadthFirstSearch(problem):
   "Search the shallowest nodes in the search tree first. [p 81]"
-  util.raiseNotDefined()
+
+  # list that holds the states already visited
+  explored = []
+  # FIFO Queue
+  fringe = util.Queue()
+  # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
+  pathDict = dict()
+
+  fringe.push(problem.startingState())
+  returnList = []
+
+  while not fringe.isEmpty():
+
+    parent = fringe.pop()
+
+    # if the parent is the init state, then parent = (x,y)
+    # and not ((x,y), Direction, cost). So only get the (x,y)
+    if len(parent) == 3:
+      parentState = parent[0]
+    else:
+      parentState = parent
+
+    if problem.isGoal(parentState):
+      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+
+    # print 'fringe ', fringe.list
+    # print 'explored ', explored
+
+    # add to explored if not already visited
+    if parentState not in explored:
+      # print 'parent state ', parentState
+      explored.append(parentState)
+
+      for child in problem.successorStates(parentState):
+        if child[0] not in explored:
+          
+          # update the dict for a state that we visit for the 
+          # first time
+          pathDict[child[0]] = parent
+          fringe.push(child)
+          
+
+  print 'path dict: ', pathDict
+  print 'return list ', returnList
+
+  #util.raiseNotDefined()
+  # return failure if the stack is empty
+  return []
+  # util.raiseNotDefined()
       
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
