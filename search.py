@@ -267,7 +267,7 @@ def uniformCostSearch(problem):
           fringe.push(child, child[2])
         else:
           sameState = findChild(explored, child)
-          # print 'child: ', child
+          # print 'same state: ', sameState
           if sameState is None: continue
 
           if sameState[2] < child[2]:
