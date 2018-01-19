@@ -12,6 +12,7 @@ by Pacman agents (in searchAgents.py).
 """
 
 import util
+import searchAgents
 
 class SearchProblem:
   """
@@ -304,9 +305,61 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
   "Search the node that has the lowest combined cost and heuristic first."
-  util.raiseNotDefined()
-    
+  explored = set()
+  # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
+  pathDict = dict()
 
+  fringe = util.PriorityQueue()
+  fringe.push(problem.startingState(), 0)
+
+  while not fringe.isEmpty():
+    if fringe.isEmpty(): 
+      print 'failure'
+      return []
+
+    parent = fringe.pop()
+
+    # if the parent is the init state, then parent = (x,y)
+    # and not ((x,y), Direction, cost). So only get the (x,y)
+    if len(parent) == 3:
+      parentState = parent[0]
+    else:
+      parentState = parent
+
+    if problem.isGoal(parentState):
+      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+
+    # add to explored if not already visited
+    if parentState not in selectStates(explored):
+      explored.add(parent)
+
+      for child in problem.successorStates(parentState):
+        if child[0] not in selectStates(explored):
+          # update the dict for a state that we visit for the 
+          # first time
+          pathDict[child[0]] = parent
+          fringe.push(child, f(child, problem))
+        else:
+          sameState = findChild(explored, child)
+          # print 'same state: ', sameState
+          if sameState is None: continue
+
+          if f(sameState, problem) < f(child, problem):
+            #pathDict[sameState[0]] = parent 
+            fringe.push(sameState, f(sameState))
+  # util.raiseNotDefined()
+    
+# cost to get from a state n to the goal
+# calls searchAgents.manhattanDistance
+def h(n, problem):
+  return searchAgents.manhattanHeuristic(n[0], problem)
+
+# returns the cost to get to state n 
+def g(n):
+  return n[2] 
+
+def f(n, problem):
+  return h(n, problem) + g(n)
   
 # Abbreviations
 bfs = breadthFirstSearch
