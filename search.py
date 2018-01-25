@@ -154,6 +154,21 @@ def getSolutionDfs(pathDict, goal, startState):
       break
   return sol
 
+def getSolutionUcs(pathDict, goal, startState):
+  sol = []
+  temp = goal
+  print 'goal ', goal[0]
+  while temp is not None:
+    sol.insert(0,temp)
+    # print pathDict[temp[0]]
+    if pathDict[temp[0]] is not None:
+      temp = pathDict[temp[0]]
+    else:
+      temp = None
+    # temp = pathDict[temp[0]] if pathDict[temp[0]] else None
+    if temp[0] == startState or temp is None:
+      break
+  return sol
 
 # format a list, so that it looks like [s,s,w,...]
 def formatSolution(frontier):
@@ -229,71 +244,71 @@ def breadthFirstSearch(problem):
   # return failure if the stack is empty
   return []
   # util.raiseNotDefined()
+
       
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
   explored = set()
   # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
   pathDict = dict()
+  costDict = dict()
 
   fringe = util.PriorityQueue()
-  fringe.push(problem.startingState(), 0)
+  fringe.push((problem.startingState(), 'None', 0),  0)
+  costDict[problem.startingState()] = 0
 
   while not fringe.isEmpty():
-    if fringe.isEmpty(): 
-      print 'failure'
-      return []
 
     parent = fringe.pop()
-
-    # if the parent is the init state, then parent = (x,y)
-    # and not ((x,y), Direction, cost). So only get the (x,y)
-    if len(parent) == 3:
-      parentState = parent[0]
-    else:
-      parentState = parent
+    parentState = parent[0]
+    parentCost = parent[2]
 
     if problem.isGoal(parentState):
-      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+      # print 'dict: ', pathDict
+      return formatSolution(getSolutionUcs(pathDict, parent, problem.startingState()))
 
     # add to explored if not already visited
-    if parentState not in selectStates(explored):
-      explored.add(parent)
+    # if parentState not in explored:
+    explored.add(parentState)
 
-      for child in problem.successorStates(parentState):
-        if child[0] not in selectStates(explored):
-          # update the dict for a state that we visit for the 
-          # first time
-          pathDict[child[0]] = parent
-          fringe.push(child, child[2])
-        else:
-          sameState = findChild(explored, child)
-          # print 'same state: ', sameState
-          if sameState is None: continue
+    for child in problem.successorStates(parentState):
+      if child[0] not in explored and child[0] not in selectStates(fringe.heap):
+      # update the dict for a state that we visit for the
+        costDict[child[0]] = child[2] + costDict[parentState]      
+        pathDict[child[0]] = parent
+        fringe.push(child, costDict[child[0]])
 
-          if sameState[2] < child[2]:
-            #pathDict[sameState[0]] = parent 
-            fringe.push(sameState, sameState[2])
+      else:
+        # if the cost of child is less that the cost of the element e in the costDict
+        # then do pathDict[e] = parent
+        otherState = findChild(fringe.heap, child[0])
+        if otherState is not None: 
+          if costDict[otherState] < costDict[child[0]]:
+            print 'here'
+            pathDict[otherState] = parent
+
 
   # util.raiseNotDefined()
 
 # finds an element e in explored such as e[0] = childState[0], given that
 # this element exists
-def findChild(explored, childState):
-  for state in explored:
-    if state[0] == childState[0]:
+def findChild(fringe, childState):
+  for state in fringe:
+    # print 'cgild: ', childState
+    # print 'state: ', state[1][0]
+    if state[1][0] == childState:
       return state
+  # print '----------------------'
   return None
 
 # takes a list/set with tuples as elements and returns
 # a set with the coordinates as elements
 def selectStates(explored):
   sol = set()
+  if explored is None: 
+    return sol
   for e in explored:
-    if len(e) == 3:
-      sol.add(e[0])
-    else:
-      sol.add(e)
+    sol.add(e[0])
   return sol
 
 def nullHeuristic(state, problem=None):
@@ -310,43 +325,37 @@ def aStarSearch(problem, heuristic=nullHeuristic):
   pathDict = dict()
 
   fringe = util.PriorityQueue()
-  fringe.push(problem.startingState(), 0)
+  fringe.push((problem.startingState(), 'None', 0),  0)
 
   while not fringe.isEmpty():
-    if fringe.isEmpty(): 
-      print 'failure'
-      return []
 
     parent = fringe.pop()
-
-    # if the parent is the init state, then parent = (x,y)
-    # and not ((x,y), Direction, cost). So only get the (x,y)
-    if len(parent) == 3:
-      parentState = parent[0]
-    else:
-      parentState = parent
+    parentState = parent[0]
+    parentCost = parent[2]
+    print 'parent: ', parent
 
     if problem.isGoal(parentState):
-      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+      return formatSolution(getSolutionUcs(pathDict, parent, problem.startingState()))
 
     # add to explored if not already visited
-    if parentState not in selectStates(explored):
-      explored.add(parent)
+    if parentState not in explored:
+      explored.add(parentState)
 
       for child in problem.successorStates(parentState):
-        if child[0] not in selectStates(explored):
+        if child[0] not in explored:
           # update the dict for a state that we visit for the 
           # first time
           pathDict[child[0]] = parent
-          fringe.push(child, f(child, problem))
-        else:
-          sameState = findChild(explored, child)
-          # print 'same state: ', sameState
-          if sameState is None: continue
+          heuristicCost = heuristic(child[0], problem)
+          fringe.push(child, heuristicCost + child[2])
+        # else:
+        #   sameState = findChild(explored, child)
+        #   # print 'same state: ', sameState
+        #   if sameState is None: continue
 
-          if f(sameState, problem) < f(child, problem):
-            #pathDict[sameState[0]] = parent 
-            fringe.push(sameState, f(sameState))
+        #   if f(sameState, problem) <= f(child, problem):
+        #     #pathDict[sameState[0]] = parent 
+        #     fringe.push(sameState, f(sameState, problem))
   # util.raiseNotDefined()
     
 # cost to get from a state n to the goal
