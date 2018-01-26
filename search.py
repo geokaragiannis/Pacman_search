@@ -251,6 +251,7 @@ def uniformCostSearch(problem):
   explored = set()
   # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
   pathDict = dict()
+  # Dict that holds the commulative cost for each key. 
   costDict = dict()
 
   fringe = util.PriorityQueue()
@@ -277,7 +278,6 @@ def uniformCostSearch(problem):
         costDict[child[0]] = child[2] + costDict[parentState]      
         pathDict[child[0]] = parent
         fringe.push(child, costDict[child[0]])
-
       else:
         # if the cost of child is less that the cost of the element e in the costDict
         # then do pathDict[e] = parent
@@ -297,7 +297,7 @@ def findChild(fringe, childState):
     # print 'cgild: ', childState
     # print 'state: ', state[1][0]
     if state[1][0] == childState:
-      return state
+      return state[1][0]
   # print '----------------------'
   return None
 
@@ -319,43 +319,47 @@ def nullHeuristic(state, problem=None):
   return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-  "Search the node that has the lowest combined cost and heuristic first."
   explored = set()
   # Dict that for each node n pathDict[n] = parent of n + direction from parent->child
   pathDict = dict()
+  # Dict that holds the commulative cost for each key. 
+  costDict = dict()
 
   fringe = util.PriorityQueue()
   fringe.push((problem.startingState(), 'None', 0),  0)
+  costDict[problem.startingState()] = 0
 
   while not fringe.isEmpty():
 
     parent = fringe.pop()
     parentState = parent[0]
     parentCost = parent[2]
-    print 'parent: ', parent
 
     if problem.isGoal(parentState):
+      # print 'dict: ', pathDict
       return formatSolution(getSolutionUcs(pathDict, parent, problem.startingState()))
 
     # add to explored if not already visited
-    if parentState not in explored:
-      explored.add(parentState)
+    # if parentState not in explored:
+    explored.add(parentState)
 
-      for child in problem.successorStates(parentState):
-        if child[0] not in explored:
-          # update the dict for a state that we visit for the 
-          # first time
-          pathDict[child[0]] = parent
-          heuristicCost = heuristic(child[0], problem)
-          fringe.push(child, heuristicCost + child[2])
-        # else:
-        #   sameState = findChild(explored, child)
-        #   # print 'same state: ', sameState
-        #   if sameState is None: continue
-
-        #   if f(sameState, problem) <= f(child, problem):
-        #     #pathDict[sameState[0]] = parent 
-        #     fringe.push(sameState, f(sameState, problem))
+    for child in problem.successorStates(parentState):
+      if child[0] not in explored and child[0] not in costDict:
+      # update the dict for a state that we visit for the
+        costDict[child[0]] = child[2] + costDict[parentState]     
+        pathDict[child[0]] = parent
+        fringe.push(child, costDict[child[0]] + heuristic(child[0], problem))
+      else:
+        # if the cost of child is less that the cost of the element e in the costDict
+        # then do pathDict[e] = parent
+        if costDict[child[0]] is not None: 
+          if costDict[child[0]] > child[2] + costDict[parentState]:
+            costDict[child[0]] = child[2] + costDict[parentState]     
+            pathDict[child[0]] = parent
+            fringe.push(child, costDict[child[0]] + heuristic(child[0], problem))
+            print 'here'
+            # costDict[otherState] = otherState[2] + costDict[parentState] + heuristic(otherState[0], problem) - heuristic(pathDict[otherState][0], problem)
+            # pathDict[otherState] = parent
   # util.raiseNotDefined()
     
 # cost to get from a state n to the goal
