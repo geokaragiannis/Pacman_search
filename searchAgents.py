@@ -282,16 +282,30 @@ class CornersProblem(search.SearchProblem):
     self._expanded = 0 # Number of search nodes expanded
     
     "*** Your Code Here ***"
+
+    self.exploredCorners = {(1,1): False, (1,top): False, (right, 1): False, (right, top): False}
+    # the state of the problem consists of the position of the pacman and which
+    # corners we have explored
+    self.startState = self.startingPosition
     
   def startingState(self):
     "Returns the start state (in your state space, not the full Pacman state space)"
     
     "*** Your Code Here ***"
+    # print 'state: '. self.startingState
+    return self.startState
     
   def isGoal(self, state):
     "Returns whether this search state is a goal state of the problem"
     
     "*** Your Code Here ***"
+    # get an instance of the explroed corners from the state argument
+    
+    for key, value in self.exploredCorners.items():
+      if value == False:
+        return False
+
+    return True
        
   def successorStates(self, state):
     """
@@ -305,20 +319,30 @@ class CornersProblem(search.SearchProblem):
      cost of expanding to that successor
     """
     
-    succ = []
+    successors = []
+    currentPosition = state
+
     for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
       # Add a successor state to the successor list if the action is legal
       # Here's a code snippet for figuring out whether a new position hits a wall:
-      #   x,y = currentPosition
-      #   dx, dy = Actions.directionToVector(action)
-      #   nextx, nexty = int(x + dx), int(y + dy)
-      #   hitsWall = self.walls[nextx][nexty]
+      x,y = currentPosition
+      dx, dy = Actions.directionToVector(action)
+      nextx, nexty = int(x + dx), int(y + dy)
+      hitsWall = self.walls[nextx][nexty]
+      if not self.walls[nextx][nexty]:
+        nextPosition = (nextx, nexty)
+        if nextPosition in self.corners:
+          self.exploredCorners[nextPosition] = True
+          print 'here: ', self.exploredCorners
+        # nextState = (nextPosition, exploredCorners)
+        cost = self.actionsCost([Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST])
+        successors.append( ( nextPosition, action, cost) )
       
-      "*** Your Code Here ***"
-      util.raiseNotDefined()
+      # "*** Your Code Here ***"
+      # util.raiseNotDefined()
       
     self._expanded += 1
-    return succ
+    return successors
 
   def actionsCost(self, actions):
     """
