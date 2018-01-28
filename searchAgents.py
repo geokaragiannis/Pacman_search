@@ -283,10 +283,10 @@ class CornersProblem(search.SearchProblem):
     
     "*** Your Code Here ***"
 
-    self.exploredCorners = {(1,1): False, (1,top): False, (right, 1): False, (right, top): False}
+    exploredCorners = (False, False, False, False)
     # the state of the problem consists of the position of the pacman and which
     # corners we have explored
-    self.startState = self.startingPosition
+    self.startState = (self.startingPosition, exploredCorners)
     
   def startingState(self):
     "Returns the start state (in your state space, not the full Pacman state space)"
@@ -299,12 +299,18 @@ class CornersProblem(search.SearchProblem):
     "Returns whether this search state is a goal state of the problem"
     
     "*** Your Code Here ***"
-    # get an instance of the explroed corners from the state argument
-    
-    for key, value in self.exploredCorners.items():
-      if value == False:
+    # # get an instance of the explroed corners from the state argument
+    # corners = state[1]
+    # for corner in corners:
+    #   # print 'state: ', state
+    #   # print 'exploredCorners: ', self.exploredCorners
+    #   if state[0] == corner:
+    #     # print 'INNNN'
+    #     self.exploredCorners[corner] = True
+    cornerValues = state[1]
+    for v in cornerValues:
+      if not v:
         return False
-
     return True
        
   def successorStates(self, state):
@@ -320,7 +326,8 @@ class CornersProblem(search.SearchProblem):
     """
     
     successors = []
-    currentPosition = state
+    currentPosition = state[0]
+    cornerList = state[1]
 
     for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
       # Add a successor state to the successor list if the action is legal
@@ -330,13 +337,21 @@ class CornersProblem(search.SearchProblem):
       nextx, nexty = int(x + dx), int(y + dy)
       hitsWall = self.walls[nextx][nexty]
       if not self.walls[nextx][nexty]:
-        nextPosition = (nextx, nexty)
-        if nextPosition in self.corners:
-          self.exploredCorners[nextPosition] = True
-          print 'here: ', self.exploredCorners
+        newList = cornerList
+        for i in range(len(self.corners)):
+          cx, cy = self.corners[i]
+          if nextx == cx and nexty == cy:
+            temp = list(newList)
+            temp[i] = True
+            newList = tuple(temp)
+        nextState = ((nextx,nexty), newList)
+
         # nextState = (nextPosition, exploredCorners)
-        cost = self.actionsCost([Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST])
-        successors.append( ( nextPosition, action, cost) )
+
+            # print 'here: ', self.exploredCorners
+        # nextState = (nextPosition, exploredCorners)
+        cost = 1
+        successors.append( ( nextState, action, cost) )
       
       # "*** Your Code Here ***"
       # util.raiseNotDefined()
