@@ -14,6 +14,9 @@ by Pacman agents (in searchAgents.py).
 import util
 import searchAgents
 
+# Data Structure for a node in the graph. Each node has a state
+# and a parent. getSolution traces back from a state s to its parent
+# until we cannot go back any futher
 class Node:
 
   def __init__(self, state, parent):
@@ -25,7 +28,7 @@ class Node:
   def getParent(self):
     return self.parent
 
-  def getSolutionBfs(self):
+  def getSolution(self):
 
     sol = []
     sol.insert(0, self.state)
@@ -125,28 +128,20 @@ def depthFirstSearch(problem):
   while not fringe.isEmpty():
 
     parent = fringe.pop()
-
-    # if the parent is the init state, then parent = (x,y)
-    # and not ((x,y), Direction, cost). So only get the (x,y)
-    if len(parent) == 3:
-      parentState = parent[0]
-    else:
-      parentState = parent
+    parentObj = parent.getState()
+    parentState = getPositionFromState(parentObj)
 
     if problem.isGoal(parentState):
-      return formatSolution(getSolutionDfs(pathDict, parent, problem.startingState()))
+      return formatSolution(parent.getSolution())
 
     # add to explored if not already visited
     if parentState not in explored:
       # print 'parent state ', parentState
-      explored.append(parentState)
+      explored.add(parentState)
 
       for child in problem.successorStates(parentState):
-        if child[0] not in explored:
-          fringe.push(child)
-          # update the dict for a state that we visit for the 
-          # first time
-          pathDict[child[0]] = parent
+        childNode = Node(child, parent)
+        fringe.push(childNode)
           
 
   #util.raiseNotDefined()
@@ -237,7 +232,7 @@ def breadthFirstSearch(problem):
     print 'parent state: ', parentState
 
     if problem.isGoal(parentState):
-      return formatSolution(parent.getSolutionBfs())
+      return formatSolution(parent.getSolution())
 
     # add to explored if not already visited
     if parentState not in explored:
@@ -281,7 +276,8 @@ def uniformCostSearch(problem):
   costDict = dict()
 
   fringe = util.PriorityQueue()
-  fringe.push((problem.startingState(), 'None', 0),  0)
+  startState = Node((problem.startingState(), 'None', 0), None)
+  fringe.push(startState, 0)
   costDict[problem.startingState()] = 0
 
   while not fringe.isEmpty():
