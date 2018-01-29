@@ -283,9 +283,10 @@ class CornersProblem(search.SearchProblem):
     
     "*** Your Code Here ***"
 
-    exploredCorners = (False, False, False, False)
+    exploredCorners = 'ffff'
     # the state of the problem consists of the position of the pacman and which
-    # corners we have explored
+    # corners we have explored. if exploredCorners[i] == 't' then the ith corner
+    # has been visited
     self.startState = (self.startingPosition, exploredCorners)
     
   def startingState(self):
@@ -299,19 +300,13 @@ class CornersProblem(search.SearchProblem):
     "Returns whether this search state is a goal state of the problem"
     
     "*** Your Code Here ***"
-    # # get an instance of the explroed corners from the state argument
-    # corners = state[1]
-    # for corner in corners:
-    #   # print 'state: ', state
-    #   # print 'exploredCorners: ', self.exploredCorners
-    #   if state[0] == corner:
-    #     # print 'INNNN'
-    #     self.exploredCorners[corner] = True
-    cornerValues = state[1]
-    for v in cornerValues:
-      if not v:
+    # if exploredCorners = 'tttt', then return True
+    exploredCorners = state[1]
+    for c in exploredCorners:
+      if c == 'f':
         return False
     return True
+  
        
   def successorStates(self, state):
     """
@@ -327,7 +322,7 @@ class CornersProblem(search.SearchProblem):
     
     successors = []
     currentPosition = state[0]
-    cornerList = state[1]
+    exploredCorners = state[1]
 
     for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
       # Add a successor state to the successor list if the action is legal
@@ -336,20 +331,14 @@ class CornersProblem(search.SearchProblem):
       dx, dy = Actions.directionToVector(action)
       nextx, nexty = int(x + dx), int(y + dy)
       hitsWall = self.walls[nextx][nexty]
-      if not self.walls[nextx][nexty]:
-        newList = cornerList
-        for i in range(len(self.corners)):
-          cx, cy = self.corners[i]
-          if nextx == cx and nexty == cy:
-            temp = list(newList)
-            temp[i] = True
-            newList = tuple(temp)
-        nextState = ((nextx,nexty), newList)
-
-        # nextState = (nextPosition, exploredCorners)
-
-            # print 'here: ', self.exploredCorners
-        # nextState = (nextPosition, exploredCorners)
+      if not hitsWall:
+        temp = list(exploredCorners)
+        for idx in range(len(self.corners)):
+          if currentPosition == self.corners[idx]:
+            temp[idx] = 't'
+            exploredCorners = ''.join(temp)
+        nextState = ((nextx,nexty), exploredCorners)
+        print 'explored corners: ', exploredCorners
         cost = 1
         successors.append( ( nextState, action, cost) )
       
