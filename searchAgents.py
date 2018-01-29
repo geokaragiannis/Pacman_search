@@ -302,10 +302,8 @@ class CornersProblem(search.SearchProblem):
     "*** Your Code Here ***"
     # if exploredCorners = 'tttt', then return True
     exploredCorners = state[1]
-    for c in exploredCorners:
-      if c == 'f':
-        return False
-    return True
+    if exploredCorners == 'tttt': return True
+    return False
   
        
   def successorStates(self, state):
@@ -319,26 +317,24 @@ class CornersProblem(search.SearchProblem):
      required to get there, and 'stepCost' is the incremental 
      cost of expanding to that successor
     """
-    
     successors = []
-    currentPosition = state[0]
-    exploredCorners = state[1]
-
     for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+      currentPosition = state[0]
+      exploredCorners = state[1]
       # Add a successor state to the successor list if the action is legal
       # Here's a code snippet for figuring out whether a new position hits a wall:
       x,y = currentPosition
       dx, dy = Actions.directionToVector(action)
       nextx, nexty = int(x + dx), int(y + dy)
+      nextPosition = (nextx, nexty)
       hitsWall = self.walls[nextx][nexty]
       if not hitsWall:
         temp = list(exploredCorners)
         for idx in range(len(self.corners)):
-          if currentPosition == self.corners[idx]:
+          if nextPosition == self.corners[idx]:
             temp[idx] = 't'
             exploredCorners = ''.join(temp)
-        nextState = ((nextx,nexty), exploredCorners)
-        print 'explored corners: ', exploredCorners
+        nextState = (nextPosition, exploredCorners)
         cost = 1
         successors.append( ( nextState, action, cost) )
       
