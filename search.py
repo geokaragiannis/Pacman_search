@@ -308,7 +308,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     for child in problem.successorStates(parentState):
       childState = child[0]
-      if childState not in explored and childState not in selectStates(fringe.heap):
+      if childState not in explored :
       # update the dict for a state that we visit for the
         costDict[child[0]] = child[2] + costDict[parentState]     
         pathDict[child[0]] = parent

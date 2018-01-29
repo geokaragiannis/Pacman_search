@@ -36,6 +36,9 @@ import time
 import search
 import searchAgents
 
+import math
+import sys
+
 class GoWestAgent(Agent):
   "An agent that goes West until it can't."
   
@@ -357,6 +360,22 @@ class CornersProblem(search.SearchProblem):
       if self.walls[x][y]: return 999999
     return len(actions)
 
+def manhattanDistance(currentPosition, goalPosition):
+  x, y = currentPosition
+  gx, gy = goalPosition
+  return abs(x - gx) + abs(y - gy)
+
+def getClosestCorner(corners, exploredCorners, currentPosition):
+  distance = sys.maxsize
+  closestCorner = None
+  for idx, corner in enumerate(corners):
+    if exploredCorners[idx] == 'f':
+      closestCornerDistance = manhattanDistance(currentPosition, corner)
+      if closestCornerDistance < distance:
+        distance = closestCornerDistance
+        closestCorner = corner
+
+  return (closestCorner, idx)
 
 def cornersHeuristic(state, problem):
   """
@@ -376,8 +395,36 @@ def cornersHeuristic(state, problem):
   walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
   
   "*** Your Code Here ***"
-  
-  return 0 # Default to trivial solution
+  # the heuristic has to be a lower bound to the cost from 
+  # the current position to the goal (i.e all corners)
+  # if we find the cost of the path from the current position, 
+  # to the closest corner (manhattan distance)
+  # and from there to the closest remaining, ones and add these costs
+  # we will get the minimum cost path, so that we visit every node, 
+  # since the Pacman will have obstacles to face as well
+  currentPosition = state[0]
+  exploredCorners = state[1]
+
+  unexploredCorners = []
+  heuristic = 0
+  for idx, corner in enumerate(corners):
+    if exploredCorners[idx] == 'f':
+      unexploredCorners.append(corner)
+
+  while len(unexploredCorners) > 0:
+    minDistance = 99999
+    for corner in unexploredCorners:
+      distance = manhattanDistance(currentPosition, corner)
+      if distance < minDistance:
+        minDistance = distance
+        closestCorner = corner
+    # add the distance to the closest node 
+    heuristic += minDistance
+    # update the current location to that of the corner just visited
+    currentPosition = closestCorner
+    # remove the corner just explored 
+    unexploredCorners.remove(closestCorner)
+  return heuristic
 
 class AStarCornersAgent(SearchAgent):
   "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -466,9 +513,25 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount'] = problem.walls.count()
   Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
   """
-  position, foodGrid = state
+  currentPosition, foodGrid = state
   "*** Your Code Here ***"
-  return 0
+  # print 'food grid: ', foodGrid.asList()
+  unEatenFood = foodGrid.asList()
+  # print unEatenFood
+
+  heuristic = 0
+  while len(unEatenFood) > 0:
+    minDistance = 99999
+    for food in unEatenFood:
+      distance = manhattanDistance(currentPosition, food)
+      if distance < minDistance:
+        minDistance = distance
+        closestFood = food  
+    heuristic += minDistance - 0.4*len(unEatenFood)
+    currentPosition = closestFood
+    unEatenFood.remove(closestFood)
+  return heuristic
+
 
 def numFoodHeuristic(state, problem):
   return state[1].count()
